@@ -1,29 +1,33 @@
-const http = require('http');
-const express = require('express');
+const express = require("express");
 const app = express();
+http = require("http");
+require("dotenv").config();
+const cors = require("cors");
+const { Server } = require("socket.io");
+app.use(cors());
 const server = http.createServer(app);
-const path = require('path');
-require('dotenv').config();
-/* Include the Sockets file */
-const initializeSocketServer = require('./sockets/SocketServer');
-/*End */
-/* Calling of Socetks method which will provide data  */
-initializeSocketServer(server);
-/* End */
+const io = new Server(server, {
+    cors: {
+      origin: ["*"],
+      methods: ["GET", "POST"],
+    },
+    transports: ["websocket", "polling"],
+    upgrade: false,
+    pingInterval: 1000,
+    pingTimeout: 150000,
+  });
 
-/* Basic view file to check the data is comming from socket or not */
-app.get('/', (req, resp) => {
-    var option = {
-        root: path.join(__dirname + "/resources/views/")
-    }
-    var file_name = 'index.html';
-    resp.sendFile(file_name, option)
+  io.on("connection", async (socket) => {
+    console.log(`⚡: ${socket.id} just connected!`);
+
+    socket.on("disconnect", () => {
+      console.log(`⚡: ${socket.id} just disconnected!`);
+    });
+  });
+
+app.get("/", (req, res) => {
+    res.send(`Chat server up`);
+    next();
 });
-
-
-const port = process.env.PORT || 4500;
-server.listen(port, () => {
-    console.log(`INFO  Server running on  [http://localhost:${port}]`);
-});
-
+  server.listen(3000, () => "Server is running on port 3000");
 
